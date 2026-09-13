@@ -6,12 +6,19 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from src.everest_intelligence.logging_config import (
+    configure_logging,
+    get_logger,
+)
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIRECTORY = PROJECT_ROOT / "data" / "processed"
 
 NDWI_THRESHOLD = 0.20
 RANDOM_SEED = 42
+
+logger = get_logger(__name__)
 
 
 def calculate_ndwi(
@@ -189,6 +196,10 @@ def main() -> None:
     """
     Execute the complete NDWI demonstration pipeline.
     """
+    configure_logging()
+
+    logger.info("Starting Everest Intelligence NDWI pipeline.")
+
     output_image_path = OUTPUT_DIRECTORY / "ndwi_demo.png"
     output_report_path = OUTPUT_DIRECTORY / "ndwi_report.json"
 
@@ -213,12 +224,15 @@ def main() -> None:
         output_path=output_report_path,
     )
 
-    print("Everest Intelligence NDWI pipeline completed.")
-    print(f"Detected water pixels: {report['detected_water_pixels']}")
-    print(f"Detected water percentage: {report['detected_water_percentage']}%")
-    print(f"NDWI threshold: {NDWI_THRESHOLD}")
-    print(f"Image saved to: {output_image_path}")
-    print(f"Report saved to: {output_report_path}")
+    logger.info("Everest Intelligence NDWI pipeline completed.")
+    logger.info("Detected water pixels: %s", report["detected_water_pixels"])
+    logger.info(
+        "Detected water percentage: %s%%",
+        report["detected_water_percentage"],
+    )
+    logger.info("NDWI threshold: %s", NDWI_THRESHOLD)
+    logger.info("Image saved to: %s", output_image_path)
+    logger.info("Report saved to: %s", output_report_path)
 
 
 if __name__ == "__main__":
