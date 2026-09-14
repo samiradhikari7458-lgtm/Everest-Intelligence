@@ -70,3 +70,7 @@ coverage.xml
 
 # Local configuration
 .local/
+
+# Local secure Python environment
+.venv-secure/
+.venv-1/
