@@ -30,6 +30,9 @@ def create_scene_report(
     crs = analysis["crs"]
 
     return {
+        "software": "Everest Intelligence",
+        "scientific_status": "Experimental - local scene analysis",
+        "observation_type": "NDWI-derived water detection",
         "scene_id": analysis["scene_id"],
         "input_bands": {
             "green": scene.green_band.name,
