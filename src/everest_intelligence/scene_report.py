@@ -16,20 +16,27 @@ def create_scene_report(
 ) -> dict[str, Any]:
     """Analyze a local scene and return a JSON-ready NDWI summary.
 
-    The report deliberately omits the full NDWI array and water mask.  That
-    keeps it small, portable, and safe to save or share while preserving the
-    measurements and spatial context needed to interpret a detection result.
+    The report deliberately omits the full NDWI array and water mask.
+    That keeps it small, portable, and safe to save or share while
+    preserving measurements, spatial context, and scientific provenance.
     """
 
     analysis = analyze_scene(scene, threshold=threshold)
     profile = analysis["profile"]
     transform = analysis["transform"]
+
     height = int(profile["height"])
     width = int(profile["width"])
-    west, south, east, north = array_bounds(height, width, transform)
+
+    west, south, east, north = array_bounds(
+        height,
+        width,
+        transform,
+    )
+
     crs = analysis["crs"]
 
-    return {
+    report: dict[str, Any] = {
         "software": "Everest Intelligence",
         "scientific_status": "Experimental - local scene analysis",
         "observation_type": "NDWI-derived water detection",
@@ -43,7 +50,9 @@ def create_scene_report(
             "threshold": analysis["threshold"],
             "total_pixels": analysis["total_pixels"],
             "detected_water_pixels": analysis["detected_water_pixels"],
-            "detected_water_percentage": analysis["detected_water_percentage"],
+            "detected_water_percentage": analysis[
+                "detected_water_percentage"
+            ],
         },
         "spatial_metadata": {
             "width": width,
@@ -61,3 +70,8 @@ def create_scene_report(
             },
         },
     }
+
+    if scene.metadata is not None:
+        report["scene_metadata"] = scene.metadata.to_dict()
+
+    return report

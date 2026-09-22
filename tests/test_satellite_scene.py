@@ -75,3 +75,40 @@ class TestSatelliteScene(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSatelliteSceneMetadata(unittest.TestCase):
+    def test_metadata_can_be_attached_to_scene(self):
+        from datetime import datetime, timezone
+
+        from src.everest_intelligence.scene_metadata import SceneMetadata
+
+        with tempfile.TemporaryDirectory() as directory:
+            green_path = Path(directory) / "green.tif"
+            nir_path = Path(directory) / "nir.tif"
+
+            green_path.touch()
+            nir_path.touch()
+
+            metadata = SceneMetadata(
+                platform="Sentinel-2",
+                sensor="MSI",
+                acquisition_datetime=datetime(
+                    2026,
+                    9,
+                    22,
+                    tzinfo=timezone.utc,
+                ),
+                processing_level="L2A",
+                provider="Copernicus Data Space",
+                resolution_m=10.0,
+            )
+
+            scene = SatelliteScene(
+                green_band=green_path,
+                nir_band=nir_path,
+                scene_id="metadata-test-01",
+                metadata=metadata,
+            )
+
+            self.assertIs(scene.metadata, metadata)

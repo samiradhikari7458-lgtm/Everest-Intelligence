@@ -67,3 +67,96 @@ class TestSceneReport(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSceneReportMetadata(TestSceneReport):
+    def test_scene_metadata_is_included_in_report(self):
+        from datetime import datetime, timezone
+
+        from src.everest_intelligence.scene_metadata import SceneMetadata
+
+        with tempfile.TemporaryDirectory() as directory:
+            green_path = Path(directory) / "green.tif"
+            nir_path = Path(directory) / "nir.tif"
+
+            self.create_band(
+                green_path,
+                np.array([[0.6]], dtype=np.float32),
+            )
+            self.create_band(
+                nir_path,
+                np.array([[0.2]], dtype=np.float32),
+            )
+
+            metadata = SceneMetadata(
+                platform="Sentinel-2",
+                sensor="MSI",
+                acquisition_datetime=datetime(
+                    2026,
+                    9,
+                    22,
+                    10,
+                    30,
+                    tzinfo=timezone.utc,
+                ),
+                processing_level="L2A",
+                provider="Copernicus Data Space",
+                resolution_m=10.0,
+                cloud_cover_percent=12.5,
+                source_uri="https://example.test/scene-01",
+            )
+
+            scene = SatelliteScene(
+                green_band=green_path,
+                nir_band=nir_path,
+                scene_id="metadata-report-01",
+                metadata=metadata,
+            )
+
+            report = create_scene_report(scene)
+
+            self.assertIn("scene_metadata", report)
+            self.assertEqual(
+                report["scene_metadata"]["platform"],
+                "Sentinel-2",
+            )
+            self.assertEqual(
+                report["scene_metadata"]["sensor"],
+                "MSI",
+            )
+            self.assertEqual(
+                report["scene_metadata"]["resolution_m"],
+                10.0,
+            )
+            self.assertEqual(
+                report["scene_metadata"]["cloud_cover_percent"],
+                12.5,
+            )
+            self.assertEqual(
+                report["scene_metadata"]["acquisition_datetime"],
+                "2026-09-22T10:30:00+00:00",
+            )
+
+    def test_report_without_metadata_remains_supported(self):
+        with tempfile.TemporaryDirectory() as directory:
+            green_path = Path(directory) / "green.tif"
+            nir_path = Path(directory) / "nir.tif"
+
+            self.create_band(
+                green_path,
+                np.array([[0.6]], dtype=np.float32),
+            )
+            self.create_band(
+                nir_path,
+                np.array([[0.2]], dtype=np.float32),
+            )
+
+            scene = SatelliteScene(
+                green_band=green_path,
+                nir_band=nir_path,
+                scene_id="no-metadata-01",
+            )
+
+            report = create_scene_report(scene)
+
+            self.assertNotIn("scene_metadata", report)
